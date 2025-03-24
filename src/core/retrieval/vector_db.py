@@ -12,7 +12,7 @@ from src.core.processing.schemas import ProcessedChunk
 class VectorDBHandler:
     def __init__(self):
         self._connect_milvus()
-        self.embeddings = DashScopeEmbeddings()
+        self.embeddings = OpenAIEmbeddings()
         self.vector_store = Milvus(
             embedding_function=self.embeddings,
             collection_name=settings.MILVUS_COLLECTION,
@@ -27,6 +27,7 @@ class VectorDBHandler:
         :return: void
         """
         connections.connect(
+            alias="default",
             host=settings.MILVUS_HOST,
             port=settings.MILVUS_PORT
         )

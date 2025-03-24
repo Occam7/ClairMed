@@ -26,7 +26,7 @@ class HealthMaintenanceService(BaseConversationService):
         1. 回答应尊重传统养生理念，同时符合现代医学常识；
         2. 建议应具体实用，易于执行；
         3. 适当引导用户补充更多信息以提供更精准的建议；
-        4. 请勿使用代码格式输出。
+        4. 请你严格使用markdown格式进行输出，要求层次分明，可读性强
 
         [对话历史]
         {history}

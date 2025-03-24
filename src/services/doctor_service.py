@@ -30,6 +30,7 @@ class DoctorService(BaseConversationService):
         回答中可以适当使用专业术语，但随后要用通俗语言解释；
         避免做出确切诊断，而是提供专业评估和建议；
         需要时强调个体差异和限制性声明。
+        请你严格使用markdown格式进行输出，要求层次分明，可读性强
         
         
         [对话历史]
@@ -49,6 +50,7 @@ class DoctorService(BaseConversationService):
             self.sessions[self.active_session_id]["title"] = query.strip()[:30]
 
         result = self.chain.invoke({"input": query})
+        print(result)
 
         memory = self._get_current_memory()
         memory.save_context({"input": query}, {"output": result})
