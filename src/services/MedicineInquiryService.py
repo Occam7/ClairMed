@@ -27,7 +27,7 @@ class MedicineInquiryService(BaseConversationService):
         2. 明确说明用药注意事项和可能的风险；
         3. 遇到需要就医的情况，建议用户及时就医；
         4. 主动询问用户年龄、既往病史、过敏史等用药相关信息；
-        5. 请勿使用代码格式输出。
+        5. 请你严格使用markdown格式进行输出，要求层次分明，可读性强
         
         
         [对话历史]
