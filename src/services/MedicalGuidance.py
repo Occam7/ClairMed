@@ -16,7 +16,7 @@ from langchain_openai import ChatOpenAI
 import base64
 import time
 import logging
-
+logger = logging.getLogger(__name__)
 
 class ImageProcessor:
     """处理图像的类"""
@@ -102,7 +102,7 @@ class MedicalGuidanceService(BaseConversationService):
     @overrides
     def _extend_session_structure(self, session):
         """扩展会话结构，添加科室字段"""
-        session["suggested_department"] = None
+        session["service_type"] = "medical"
 
     @overrides
     def _extend_session_info(self, session, session_info):
@@ -156,7 +156,7 @@ class MedicalGuidanceService(BaseConversationService):
         :return: Runnable: 科室处理链路。
         """
         department_prompt = """你是一个医学分诊助手，请根据以下信息判断所属医学科室。
-        请注意不要用MD文本输出
+        请你严格使用markdown格式进行输出，要求层次分明，可读性强
         [医学知识]
         {context}
 
@@ -243,6 +243,7 @@ class MedicalGuidanceService(BaseConversationService):
             # 如果该会话还没有标题，设置当前 query 为标题
             if not self.sessions[self.active_session_id]["title"]:
                 self.sessions[self.active_session_id]["title"] = query.strip()[:30]  # 最多保留前30字
+                self._save_session(self.active_session_id)
 
             destination = self.router_chain.invoke({"input": query})
 
@@ -259,6 +260,10 @@ class MedicalGuidanceService(BaseConversationService):
 
             memory = self._get_current_memory()
             memory.save_context({"input": query}, {"output": result})
+
+            self._save_session(self.active_session_id)
+
+            logger.info(f"会话 {self.active_session_id} 处理了用户输入")
 
             processing_time = time.time() - start_time
             self._debug_log("processing complete", {
@@ -286,7 +291,7 @@ class MedicalGuidanceService(BaseConversationService):
 
         # 如果没有提供查询，使用默认提示
         if not query:
-            query = "请分析这张医疗图像，识别可能的医学问题，并提供专业见解"
+            query = "请分析这张医疗图像，识别可能的医学问题，并提供专业见解 请你严格使用markdown格式进行输出，要求层次分明，可读性强"
 
         # 使用图像处理器处理图像
         result = self.image_processor.process_image(image_path, query)
@@ -297,6 +302,7 @@ class MedicalGuidanceService(BaseConversationService):
         if department:
             # 使用医学模型补充科室相关信息
             enrichment_prompt = f"""
+            请你严格使用markdown格式进行输出，要求层次分明，可读性强
             你是{department}的医学专家。基于以下图像分析结果，
             从{department}专业角度补充分析并给出专业建议：
 
@@ -333,7 +339,3 @@ class MedicalGuidanceService(BaseConversationService):
         print(f"\n[DEBUG] {stage.upper()} STAGE")
         for k, v in data.items():
             print(f"  ├─ {k}: {str(v)[:80]}{'...' if len(str(v)) > 80 else ''}")
-
-if __name__ == '__main__':
-    llm = MedicalGuidanceService()
-    print(llm.process_image_input("https://i-blog.csdnimg.cn/blog_migrate/600e4b15d8fa02806c68602a58a74444.png"))

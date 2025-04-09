@@ -4,7 +4,8 @@ from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 from src.services.base_service import BaseConversationService
 from overrides import overrides
-
+import logging
+logger = logging.getLogger(__name__)
 
 class HomeService(BaseConversationService):
     def __init__(self):
@@ -41,10 +42,18 @@ class HomeService(BaseConversationService):
         # 如果该会话还没有标题，设置当前query为标题
         if not self.sessions[self.active_session_id]["title"]:
             self.sessions[self.active_session_id]["title"] = query.strip()[:30]
-
+            self._save_session(self.active_session_id)
         result = self.chain.invoke({"input": query})
 
         memory = self._get_current_memory()
         memory.save_context({"input": query}, {"output": result})
 
+        self._save_session(self.active_session_id)
+        logger.info(f"会话{self.active_session_id}处理了用户输入")
         return result
+
+
+    def _extend_session_structure(self, session):
+        """扩展会话结构，添加药品咨询特有字段"""
+        # 在这里可以添加药品咨询服务特有的字段
+        session["service_type"] = "home"  # 添加服务类型标记

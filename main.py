@@ -1,20 +1,20 @@
 # main.py
 from fastapi import FastAPI, UploadFile, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.params import Depends
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from src.services.service_manager import ServiceManager, ServiceType
 import tempfile
 import os
-import requests
-import hashlib
-from datetime import datetime, timedelta
+from dotenv import load_dotenv
 import logging
 
-
+load_dotenv()
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://localhost:27017/")
+logger.info(f"使用数据库连接: {MONGODB_URI}")
 
 app = FastAPI(title="健康知识助手")
 
@@ -277,74 +277,6 @@ async def get_messages(session_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-#------------------------ 地图接口 ---------------------------
-# @app.post("/nearby_hospitals", response_model=HospitalResponse)
-# @with_cache
-# async def get_nearby_hospitals_amap(request: LocationRequest):
-#     # 高德地图API密钥
-#     amap_key: str = "150f8557934f1ba9369b7c30b568587f"
-#
-#     # 构造请求URL
-#     url = "https://restapi.amap.com/v5/place/around"
-#     params = {
-#         "key": amap_key,
-#         "location": f"{request.longitude},{request.latitude}",
-#         "keywords": request.keyword,
-#         "radius": request.radius,
-#         "types": "090000",  # 医疗类
-#         "sortrule": "distance",
-#         "offset": request.max_results,
-#         "page": 1,
-#         "extensions": "all"
-#     }
-#
-#     try:
-#         logger.info(f"Requesting from AMap API with params: {params}")
-#         response = requests.get(url, params=params)
-#         result = response.json()
-#
-#         if result.get("status") != "1":
-#             logger.error(f"AMap API error: {result}")
-#             raise HTTPException(status_code=500, detail=f"高德API返回错误: {result.get('info')}")
-#
-#         pois = result.get("pois", [])
-#         hospitals = []
-#
-#         for poi in pois:
-#             # 计算距离
-#             distance_str = f"{float(poi.get('distance', 0)) / 1000:.1f}km"
-#
-#             location = poi.get("location", "").split(",")
-#             if len(location) == 2:
-#                 lng, lat = float(location[0]), float(location[1])
-#             else:
-#                 lng, lat = 0, 0
-#
-#             hospitals.append(Hospital(
-#                 name=poi.get("name", "未知医院"),
-#                 address=poi.get("address", "地址未知"),
-#                 distance=distance_str,
-#                 latitude=lat,
-#                 longitude=lng,
-#                 phone=poi.get("tel"),
-#                 type=poi.get("type").split(";")[0] if poi.get("type") else None,
-#                 rating=float(poi.get("rating", 0)) if poi.get("rating") else None,
-#                 images=poi.get("photos", [])[:3] if poi.get("photos") else None
-#             ))
-#
-#         response_data = HospitalResponse(
-#             hospitals=hospitals,
-#             total=len(hospitals)
-#         )
-#
-#         logger.info(f"Found {len(hospitals)} hospitals")
-#         return response_data
-#
-#     except Exception as e:
-#         logger.exception("Error when getting hospitals from AMap")
-#         raise HTTPException(status_code=500, detail=f"获取附近医院失败: {str(e)}")
-
-# ------------------------ 健康检查接口 ------------------------
 @app.get("/")
 async def root():
     return {"message": "健康知识助手正在运行"}

@@ -1,3 +1,4 @@
+#src/core/processing/data_splitter.py
 import re,sys,os
 from bs4 import BeautifulSoup
 from langchain_text_splitters import RecursiveCharacterTextSplitter

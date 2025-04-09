@@ -1,3 +1,4 @@
+#/src/core/retrieval/vector_db.py
 from langchain.schema import Document
 from langchain_community.embeddings import DashScopeEmbeddings
 from langchain_milvus import Milvus
@@ -12,7 +13,7 @@ from src.core.processing.schemas import ProcessedChunk
 class VectorDBHandler:
     def __init__(self):
         self._connect_milvus()
-        self.embeddings = OpenAIEmbeddings()
+        self.embeddings = DashScopeEmbeddings(model="text-embedding-v1")
         self.vector_store = Milvus(
             embedding_function=self.embeddings,
             collection_name=settings.MILVUS_COLLECTION,
